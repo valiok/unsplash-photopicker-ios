@@ -15,7 +15,8 @@ class PhotoView: UIView {
     private var currentPhotoID: String?
     private var imageDownloader = ImageDownloader()
     private var screenScale: CGFloat { return UIScreen.main.scale }
-
+    private var unspalshPhoto: UnsplashPhoto?
+    
     @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var gradientView: GradientView!
     @IBOutlet weak var userNameLabel: UILabel!
@@ -36,6 +37,7 @@ class PhotoView: UIView {
             GradientView.Color(color: .clear, location: 0),
             GradientView.Color(color: UIColor(white: 0, alpha: 0.5), location: 1)
         ])
+        configureUserNameLabel()
     }
 
     func prepareForReuse() {
@@ -55,6 +57,7 @@ class PhotoView: UIView {
     // MARK: - Setup
 
     func configure(with photo: UnsplashPhoto, showsUsername: Bool = true) {
+        self.unspalshPhoto = photo
         self.showsUsername = showsUsername
         userNameLabel.text = photo.user.displayName
         imageView.backgroundColor = photo.color
@@ -88,6 +91,20 @@ class PhotoView: UIView {
             URLQueryItem(name: "w", value: "\(frame.width)"),
             URLQueryItem(name: "dpr", value: "\(Int(screenScale))")
         ])
+    }
+    
+    private func configureUserNameLabel() {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(nameLabelDidTapped))
+        userNameLabel.addGestureRecognizer(tap)
+    }
+    
+    @objc private func nameLabelDidTapped() {
+        guard let profileUrl = unspalshPhoto?.user.profileURL else {
+            return
+        }
+        if UIApplication.shared.canOpenURL(profileUrl) {
+            UIApplication.shared.open(profileUrl)
+        }
     }
 
     // MARK: - Utility
